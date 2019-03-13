@@ -1,6 +1,5 @@
-
 #include <DueTimer.h> // Libreria Timer de Arduino Due, para utilizar los Timer y sus funciones
-#include <vector> // Librería para crear el vector de count
+#include <vector>     // Librería para crear el vector de count
 
 /* ****************************************************************************************************************************************************************************** */
 /*                                                            DESCRIPCION DE LAS VARIABLES GLOBALES UTILIZADAS                                                                    */
@@ -131,14 +130,12 @@ void controlador(){
     
         setTension(-12.0);
     
-    else
-    {
-         //u_f= (1.04743934192247*u)-(0.0688075242698159*pow(u,3.0))+(0.0117828971925891*pow(u,5.0))-(0.00110443087206873*pow(u,7.0))+(0.0000594318433486049)*pow(u,9.0)+(-0.00000185451299954305)*pow(u,11)+(0.0000000330586602236067)*pow(u,13)+(-0.000000000311628595615115)*pow(u,15)+(0.00000000000120305545684873)*pow(u,17);
+    else {         
         for (int i = 0; i<12;i++){
-            u_f +=b[i]*pow(u,((2*i)+1));
+            u_f +=b[i]*pow(u,((2*i)+1)); //Ajustamos la ecuacion porque nuestro indice empieza en 0 (no en 1)
             setTension(u_f);
          }
-      }
+    }
 
    valores.push_back(count);
   
@@ -309,15 +306,15 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(pinIntB), controlPosicion, CHANGE);
   
   /* Con interrupciones por Timer: para mover el motor*/
-  // Interrupcion cada 1000 microsegundos (1ms)
+  /* Interrupcion cada 1000 microsegundos (1ms) */
 
-  // Para el modelado con el que se obtendrán los valores de kp
+  /* Para el modelado con el que se obtendrán los valores de kp */
   //Timer3.attachInterrupt(modeladoMotor).setPeriod(1000).start();
 
-  // Para el controlador final
+  /* Para el controlador final */
   Timer3.attachInterrupt(controlador).setPeriod(12000).start();
 
-    /* Para la consola*/
+  /* Para la consola*/
   Serial.begin(115200);
 }
 
@@ -359,5 +356,4 @@ void loop() {
         while(1);
       }
    }
-  
 }
