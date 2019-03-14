@@ -16,9 +16,9 @@
   int pinB = 3;
 
 /* Variables del controlador */ 
-  const double ref = -2*pi; //entrada del controlador
-  const double kp = 188.4922;
-  int counter = 0; //salida del controlador
+  const double ref = 2*pi;        //Entrada del controlador
+  const double kp = 5.277356427;  //Valor optimo (x75)
+  int counter = 0;                //Salida del controlador
 
 /* Variables para saber la posicion del encoder */
   int estado = 0;
