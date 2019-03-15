@@ -17,7 +17,8 @@
 
 /* Variables del controlador */ 
   const double ref = 2*pi;        //Entrada del controlador
-  const double kp = 5.277356427;  //Valor optimo (x75)
+  //const double kp = 5.277356427;//Valor optimo (x75) para CPR=12
+  const double kp = 21.10975554;  //Valor optimo (x75) para CPR=48
   int counter = 0;                //Salida del controlador
 
 /* Variables para saber la posicion del encoder */
@@ -101,14 +102,14 @@ double getPosition(int num){
 /* Convierte la entrada 'ref' en valor del encoder */
 double getPositionInver(double num){
   double posicion = 0.0; 
-  posicion = (num)*3591.8/(2*pi);
+  posicion = ((double)num)*3591.8/(2*pi);
   return posicion;
 }
 /* Relaciona la tensión con el ciclo de trabajo */  
 void setTension(double x){
    if(x>=12.0){
     PWMC_SetDutyCycle(PWM_INTERFACE, 1, maxDutyCount);
-     PWMC_SetDutyCycle(PWM_INTERFACE, 0, 0);
+    PWMC_SetDutyCycle(PWM_INTERFACE, 0, 0);
    }else if(x<=(-12.0)){
     PWMC_SetDutyCycle(PWM_INTERFACE, 1, 0);
     PWMC_SetDutyCycle(PWM_INTERFACE, 0, maxDutyCount);
@@ -163,7 +164,7 @@ void setup() {
 
 /* Valores de las constantes b obtenidas en Matlab */ 
   b[0] = 1.1622;
-  b[1] = -0.0603;
+  b[1] = -0.0613;
   b[2] = 0.0116;
   b[3] = -0.0012;
   b[4] = 7.2752e-5;
