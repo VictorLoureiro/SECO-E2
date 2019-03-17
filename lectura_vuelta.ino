@@ -1,21 +1,30 @@
+/*************/    
+/* VARIABLES */ 
+/*************/
+
+/* Pines del motor */
 int motorPinA = 4;
 int motorPinB = 5;
 
+/* Pines del encoder */
 int encoderA = 7;
 int encoderB = 3;
 
+/* Valores y estados de los encoders */
 volatile int counter = 0;
 int valorA = 0;
 int valorB = 0;
 long T0 = 0;
-
 volatile int estado = 0;
 volatile int estado_aux = 0;
 void contador();
 
 void setup() {
-  Serial.begin(9600); //Iniciar puerto serie
 
+  /* Iniciamos puerto serie */
+  Serial.begin(9600);
+
+  /* Leemos posición inicial del motor para saber en qué estado se encuentra y poder determinar su posicion */
   valorA = digitalRead(encoderA);
   valorB = digitalRead(encoderB);
 
@@ -32,14 +41,16 @@ void setup() {
     estado_aux = 4;
   }
 
+  /* Configuramos los pines del motor como salidas */
   pinMode(motorPinA, OUTPUT);
   pinMode(motorPinB, OUTPUT);
 
+  /* Configuramos los pines del encoder como entradas */
   pinMode(encoderA, INPUT);
   pinMode(encoderB, INPUT);
 
-  attachInterrupt(digitalPinToInterrupt(7), contador, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(3), contador, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(encoderA), contador, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(encoderB), contador, CHANGE);
 }
 
 void loop() {

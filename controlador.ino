@@ -1,43 +1,43 @@
 #include <DueTimer.h> // Libreria Timer de Arduino Due, para utilizar los Timer y sus funciones
-#include <vector>     // Librería para crear el vector de count
+#include <vector>     // Librería para crear el vector de cuentas
 
-/********************************/    
-/* Descripcion de las variables */ 
-/********************************/
+/*************/    
+/* VARIABLES */ 
+/*************/
 
-  const double pi = 3.141592;
+const double pi = 3.141592;
 
 /* Pines para PWM a 20kHz */
-  int pwmPin1 = 35;
-  int pwmPin2 = 37;
+int pwmPin1 = 35;
+int pwmPin2 = 37;
 
-/* Pines para control de interrupciones */
-  int pinA = 7;
-  int pinB = 3;
+/* Pines para control de interrupciones (lectura del ENCODER) */
+int pinA = 7;
+int pinB = 3;
 
 /* Variables del controlador */ 
-  const double ref = -2*pi;        //Entrada del controlador
-  const double kp = 37.5284543;  //Valor optimo (x75) para CPR=48
-  int counter = 0;                //Salida del controlador
+const double ref = -2*pi;     //Entrada del controlador
+const double kp = 37.5284543; //Valor optimo (x75) para CPR=48
+int counter = 0;              //Salida del controlador
 
-/* Variables para saber la posicion del encoder */
-  int estado = 0;
-  int estado_anterior = 0;
+/* Estados para saber la posicion del encoder */
+int estado = 0;
+int estado_anterior = 0;
 
 /* Vector donde se almacenan los valores de count cada ms */
-  std::vector<int> valores={0};
-  int indice = 0;
-  double b[12];    
+std::vector<int> valores={0};
+int indice = 0;
+double b[12];    
 
 /*Modificamos PWM*/
-  uint32_t maxDutyCount = 2100;  //+12 Voltios
-  uint32_t channel_1 = g_APinDescription[pwmPin1].ulPWMChannel;
-  uint32_t channel_2 = g_APinDescription[pwmPin2].ulPWMChannel;
-  uint32_t prescaler = 1;
+uint32_t maxDutyCount = 2100;  //+12 Voltios
+uint32_t channel_1 = g_APinDescription[pwmPin1].ulPWMChannel;
+uint32_t channel_2 = g_APinDescription[pwmPin2].ulPWMChannel;
+uint32_t prescaler = 1;
 
-/********************************************/    
-/* Descripcion de las funciones intermedias */ 
-/********************************************/
+/*************/    
+/* FUNCIONES */ 
+/*************/
 
 /* Calcula la posición del enconder */
 void posicionEncoder(){
@@ -91,7 +91,7 @@ void posicionEncoder(){
     }
 }
   
-/* Convierte la salida 'y' en radianes */
+/* Convierte la salida en radianes */
 double getPosition(int num){
   double rad = 0.0;
   rad = ((double)num)*2*pi/3591.8;
@@ -104,7 +104,8 @@ double getPositionInver(double num){
   posicion = ((double)num)*3591.8/(2*pi);
   return posicion;
 }
-/* Relaciona la tensión con el ciclo de trabajo */  
+
+/* Ajusta la tensión en funcion del ciclo de trabajo */  
 void setTension(double x){
    if(x>=12.0){
     PWMC_SetDutyCycle(PWM_INTERFACE, 1, maxDutyCount);
@@ -152,13 +153,16 @@ void setTension(double x){
   valores.push_back(counter);
 }
 
-
+/*****************/
 /***** SETUP *****/
+/*****************/
+
 void setup() {
  /* Habilitamos el enable */
  pinMode(2, OUTPUT);
  digitalWrite(2,HIGH);
-  
+
+ /*Iniciamos la comunicacion serial*/
  Serial.begin(115200);
 
 /* Valores de las constantes b obtenidas en Matlab */ 
@@ -176,7 +180,6 @@ void setup() {
   b[11] = -3.9983e-19;
   
  /* PWMC */
- //Enable PWM controller peripheral
  pmc_enable_periph_clk(PWM_INTERFACE_ID);
  
  PIO_Configure(
@@ -191,18 +194,19 @@ void setup() {
     g_APinDescription[pwmPin2].ulPin,
     g_APinDescription[pwmPin2].ulPinConfiguration);
 
- //Enable channel1 and set parameters
+ //Enable canal1 y ajuste de parametros
  PWMC_ConfigureChannel(PWM_INTERFACE, 0 , prescaler, 0, 0);  
  PWMC_SetPeriod(PWM_INTERFACE, 0, maxDutyCount); 
  PWMC_EnableChannel(PWM_INTERFACE, 0);
  PWMC_SetDutyCycle(PWM_INTERFACE, 0, 0); // entre 0 , 2100
 
- //Enable channel2 and set parameters
+ //Enable canal2 y ajuste de parametros
  PWMC_ConfigureChannel(PWM_INTERFACE, 1, prescaler, 0, 0);
  PWMC_SetPeriod(PWM_INTERFACE, 1, maxDutyCount); 
  PWMC_EnableChannel(PWM_INTERFACE, 1);
  PWMC_SetDutyCycle(PWM_INTERFACE, 1, 0); // entre 0 , 2100
 
+  /* Configuramos los pines del encoder como entradas */
   pinMode(pinA, INPUT);
   pinMode(pinB, INPUT);
 
@@ -213,19 +217,18 @@ void setup() {
 
   estado_anterior = estado;
 
- /* Con interrupciones Hardware: para obtener la posicion del motor */
+ /* Con interrupciones Hardware obtenemos la posicion del motor */
   attachInterrupt( digitalPinToInterrupt(pinA), posicionEncoder, CHANGE);
   attachInterrupt( digitalPinToInterrupt(pinB), posicionEncoder, CHANGE); 
 
-  /* Con interrupciones por Timer: para mover el motor */
+  /* Con interrupciones por Timer movemos el motor */
   Timer3.attachInterrupt(controlador).setPeriod(12000).start();
   //Timer3.attachInterrupt(modeladoMotor).setPeriod(1000).start();
 }
 
 void imprime() {
 
-  Serial.print("Muestra");
-  Serial.print("\t");
+  Serial.print("Muestra"); Serial.print("\t");
   Serial.println("Valor");
   
   for(unsigned k=0 ;k<valores.size();k++){
@@ -235,7 +238,10 @@ void imprime() {
   }
 }
 
+/**************/
 /*****LOOP*****/
+/**************/
+
 void loop() {
   if (ref >= 0){
     if(counter >= getPositionInver(ref)){
